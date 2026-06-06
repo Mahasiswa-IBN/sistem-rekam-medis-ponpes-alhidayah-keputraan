@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Rekam Medis - Ponpes Al-Hidayah Keputran</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Chart.js CDN for Medical Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Mobile Top Navigation Header -->
+  <header class="mobile-header">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <i class="fas fa-clinic-medical" style="font-size: 1.25rem;"></i>
+      <span style="font-family: 'Outfit'; font-weight: 700; font-size: 1.1rem;">Poskespes Al-Hidayah</span>
+    </div>
+    <button class="mobile-nav-toggle">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <i class="fas fa-heartbeat"></i>
+        </div>
+        <div class="brand-name">
+          <span class="brand-title">Al-Hidayah</span>
+          <span class="brand-subtitle">REKAM MEDIS POSKESPES</span>
+        </div>
+      </div>
+
+      <nav style="display: flex; flex-direction: column; flex: 1;">
+        <ul class="sidebar-nav">
+          <li class="nav-item active">
+            <a href="#" data-page="dashboard">
+              <i class="fas fa-th-large"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" data-page="santri">
+              <i class="fas fa-user-graduate"></i>
+              <span>Data Santri</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" data-page="rekam-medis">
+              <i class="fas fa-notes-medical"></i>
+              <span>Rekam Medis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" data-page="obat">
+              <i class="fas fa-pills"></i>
+              <span>Stok Obat</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" data-page="analisis">
+              <i class="fas fa-chart-line"></i>
+              <span>Analisis Kesehatan</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle-container">
+          <span class="theme-label">Ubah Tema</span>
+          <button class="theme-toggle-btn" id="theme-toggle" title="Ganti Mode Terang/Gelap">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+        <div style="font-size: 0.75rem; text-align: center; color: rgba(255, 255, 255, 0.4);">
+          Ponpes Al-Hidayah Keputran &copy; 2026
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- Content Header (Identical across pages, dynamically customized if needed) -->
+      <section class="content-header">
+        <div class="header-meta">
+          <h1 class="page-title">Sirkulasi &amp; Rekam Medis</h1>
+          <p class="page-subtitle">Sistem Informasi Kesehatan Santri Ponpes Al-Hidayah Keputran</p>
+        </div>
+        <div class="header-actions">
+          <div class="info-widget">
+            <i class="fas fa-calendar-alt"></i>
+            <span id="current-date-widget">Sabtu, 6 Juni 2026</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 1: DASHBOARD VIEW -->
+      <div id="dashboard-page" class="page-view active">
+        <!-- 4 Stat Cards -->
+        <div class="dashboard-stats">
+          <div class="stat-card primary">
+            <div class="stat-details">
+              <span class="stat-label">Total Santri</span>
+              <span class="stat-number" id="stat-total-santri">0</span>
+            </div>
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+          </div>
+          <div class="stat-card secondary">
+            <div class="stat-details">
+              <span class="stat-label">Catatan Medis</span>
+              <span class="stat-number" id="stat-total-rm">0</span>
+            </div>
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-file-medical"></i>
+            </div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-details">
+              <span class="stat-label">Santri Sakit Aktif</span>
+              <span class="stat-number" id="stat-sakit-aktif">0</span>
+            </div>
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-bed"></i>
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-details">
+              <span class="stat-label">Stok Obat Kritis</span>
+              <span class="stat-number" id="stat-obat-kritis">0</span>
+            </div>
+            <div class="stat-icon-wrapper">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Widgets Grid -->
+        <div class="dashboard-grid">
+          
+          <!-- Column 1: Recent Activity -->
+          <div class="card-panel">
+            <div class="card-title-bar">
+              <h3><i class="fas fa-history"></i> Pemeriksaan Santri Terbaru</h3>
+              <a href="#" data-page="rekam-medis" class="btn btn-secondary btn-sm mobile-nav-link">Lihat Semua</a>
+            </div>
+            <div class="recent-list" id="recent-logs-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Column 2: Inventory alerts & actions -->
+          <div class="card-panel">
+            <div class="card-title-bar">
+              <h3><i class="fas fa-pills"></i> Peringatan Obat</h3>
+              <a href="#" data-page="obat" class="btn btn-secondary btn-sm mobile-nav-link">Kelola Obat</a>
+            </div>
+            <div class="recent-list" id="medicine-alerts-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PAGE 2: SANTRI DIRECTORY -->
+      <div id="santri-page" class="page-view">
+        <div class="filter-bar">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-santri" placeholder="Cari santri berdasarkan nama, ID, atau nama orang tua...">
+          </div>
+          <div class="filter-group">
+            <label class="form-label" style="margin:0; font-size:0.8rem">Asrama:</label>
+            <select class="filter-select" id="filter-dorm-santri">
+              <option value="all">Semua Asrama</option>
+              <option value="Putra">Putra</option>
+              <option value="Putri">Putri</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openAddSantriModal()">
+            <i class="fas fa-plus"></i> Tambah Santri
+          </button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Santri (Nama &amp; ID)</th>
+                  <th>Asrama</th>
+                  <th>Kamar</th>
+                  <th>Umur</th>
+                  <th>Orang Tua &amp; HP</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-santri-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 3: MEDICAL RECORDS -->
+      <div id="rekam-medis-page" class="page-view">
+        <div class="filter-bar">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-rm" placeholder="Cari rekam medis berdasarkan nama santri, gejala, diagnosis...">
+          </div>
+          <div class="filter-group">
+            <label class="form-label" style="margin:0; font-size:0.8rem">Status Istirahat:</label>
+            <select class="filter-select" id="filter-status-rm">
+              <option value="all">Semua Status</option>
+              <option value="Rawat Jalan">Rawat Jalan</option>
+              <option value="Istirahat di Kamar">Istirahat di Kamar</option>
+              <option value="Istirahat di Poskespes">Istirahat di Poskespes</option>
+              <option value="Rujuk Rumah Sakit">Rujuk RS</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openAddRMModal()">
+            <i class="fas fa-file-medical"></i> Catat Rekam Medis
+          </button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Tanggal Kunjungan</th>
+                  <th>Santri</th>
+                  <th>Gejala</th>
+                  <th>Diagnosis</th>
+                  <th>Obat Diberikan</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-rm-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 4: MEDICINE INVENTORY -->
+      <div id="obat-page" class="page-view">
+        <div class="filter-bar">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-obat" placeholder="Cari obat berdasarkan nama, jenis, ID...">
+          </div>
+          <button class="btn btn-primary" onclick="openAddObatModal()">
+            <i class="fas fa-plus"></i> Tambah Obat Baru
+          </button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>ID Obat</th>
+                  <th>Nama Obat</th>
+                  <th>Jenis</th>
+                  <th>Stok &amp; Indikator</th>
+                  <th>Tanggal Kedaluwarsa</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-obat-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 5: HEALTH ANALYTICS -->
+      <div id="analisis-page" class="page-view">
+        <div class="card-panel">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-heartbeat"></i> Dashboard Visualisasi Analisis Kesehatan Poskespes</h3>
+            <span style="font-size:0.85rem; color:var(--text-secondary)">Data Statistik Real-time</span>
+          </div>
+          <p style="font-size:0.9rem; color:var(--text-secondary); line-height: 1.5;">
+            Grafik di bawah ini memetakan persebaran diagnosis penyakit santri, membandingkan jumlah kasus sakit di asrama putra/putri untuk mendeteksi penularan dini, serta merekam tren mingguan kunjungan santri ke Pos Kesehatan Pesantren (Poskespes).
+          </p>
+        </div>
+
+        <div class="analytics-grid" id="analytics-container">
+          
+          <div class="chart-wrapper">
+            <h4 style="font-family:'Outfit'; font-size:1.05rem; display:flex; align-items:center; gap:0.5rem">
+              <i class="fas fa-chart-pie" style="color:var(--primary)"></i> Distribusi Penyakit (Top 7)
+            </h4>
+            <div style="flex:1; position:relative;">
+              <canvas id="chart-diagnosis"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-wrapper">
+            <h4 style="font-family:'Outfit'; font-size:1.05rem; display:flex; align-items:center; gap:0.5rem">
+              <i class="fas fa-chart-bar" style="color:var(--secondary)"></i> Kasus Sakit Per Asrama
+            </h4>
+            <div style="flex:1; position:relative;">
+              <canvas id="chart-dormitory"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-wrapper" style="grid-column: span 2;">
+            <h4 style="font-family:'Outfit'; font-size:1.05rem; display:flex; align-items:center; gap:0.5rem">
+              <i class="fas fa-chart-area" style="color:var(--success)"></i> Tren Kunjungan Poskespes (7 Hari Aktif Kunjungan)
+            </h4>
+            <div style="flex:1; position:relative; min-height: 220px;">
+              <canvas id="chart-trend"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODALS SECTION -->
+  
+  <!-- 1. Modal Add/Edit Santri -->
+  <div class="modal-overlay" id="modal-santri">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modal-santri-title">Tambah Data Santri</h3>
+        <button class="modal-close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="form-santri">
+        <div class="modal-body">
+          <input type="hidden" id="santri-action-type" value="add">
+          <input type="hidden" id="santri-id-edit" value="">
+          
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label class="form-label" for="santri-name">Nama Lengkap Santri</label>
+              <input type="text" class="form-control" id="santri-name" required placeholder="Contoh: Ahmad Fauzan">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="santri-gender">Jenis Kelamin</label>
+              <select class="form-control" id="santri-gender" required>
+                <option value="Laki-laki">Laki-laki (Putra)</option>
+                <option value="Perempuan">Perempuan (Putri)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="santri-dorm">Asrama</label>
+              <select class="form-control" id="santri-dorm" required>
+                <option value="Putra">Putra</option>
+                <option value="Putri">Putri</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="santri-room">Kamar / Kompleks</label>
+              <input type="text" class="form-control" id="santri-room" required placeholder="Contoh: Kamar 04 (Sunan Ampel)">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="santri-birthdate">Tanggal Lahir</label>
+              <input type="date" class="form-control" id="santri-birthdate" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="santri-parent">Nama Orang Tua / Wali</label>
+              <input type="text" class="form-control" id="santri-parent" required placeholder="Contoh: H. Supardi">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="santri-phone">No. HP Orang Tua</label>
+              <input type="tel" class="form-control" id="santri-phone" required placeholder="Contoh: 0812XXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="santri-blood">Golongan Darah</label>
+              <select class="form-control" id="santri-blood">
+                <option value="-">-</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="AB">AB</option>
+                <option value="O">O</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="santri-allergies">Riwayat Alergi</label>
+              <input type="text" class="form-control" id="santri-allergies" placeholder="Contoh: Udang, Parasetamol, Dingin">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal Add Rekam Medis -->
+  <div class="modal-overlay" id="modal-rekam-medis">
+    <div class="modal-window" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3>Pencatatan Rekam Medis Baru</h3>
+        <button class="modal-close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="form-rekam-medis">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label class="form-label" for="rm-santri-select">Pilih Santri</label>
+              <select class="form-control" id="rm-santri-select" required>
+                <!-- Filled via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-date">Waktu Pemeriksaan</label>
+              <input type="datetime-local" class="form-control" id="rm-date" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-status">Rekomendasi Istirahat</label>
+              <select class="form-control" id="rm-status" required>
+                <option value="Rawat Jalan">Rawat Jalan (Tetap Sekolah)</option>
+                <option value="Istirahat di Kamar">Istirahat di Kamar Asrama</option>
+                <option value="Istirahat di Poskespes">Istirahat di Poskespes</option>
+                <option value="Rujuk Rumah Sakit">Rujuk ke RS / Klinik</option>
+              </select>
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="form-label" for="rm-symptoms">Keluhan / Gejala Utama</label>
+              <textarea class="form-control" id="rm-symptoms" required placeholder="Jelaskan detail keluhan yang dirasakan santri..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-diagnosis">Diagnosis Penyakit</label>
+              <input type="text" class="form-control" id="rm-diagnosis" required placeholder="Contoh: Influenza, Gastritis, Scabies">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-officer">Petugas Poskespes (Pemeriksa)</label>
+              <input type="text" class="form-control" id="rm-officer" required placeholder="Nama Ustadz/Ustadzah/Medis">
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="form-label" for="rm-treatment">Tindakan Medis / Perawatan</label>
+              <textarea class="form-control" id="rm-treatment" placeholder="Tindakan yang diberikan (misal: Kompres air hangat, bersihkan luka)"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-obat-select">Pemberian Obat</label>
+              <select class="form-control" id="rm-obat-select">
+                <!-- Filled via JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rm-obat-qty">Jumlah Obat yang Diberikan</label>
+              <input type="number" class="form-control" id="rm-obat-qty" min="0" value="0">
+              <span id="rm-qty-error" style="color:var(--danger); font-size:0.75rem; font-weight:600; display:none; margin-top:0.25rem;"></span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-rm">Simpan Rekam Medis</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Modal Detail Rekam Medis (View only detail) -->
+  <div class="modal-overlay" id="modal-detail-rm">
+    <div class="modal-window">
+      <div class="modal-header" style="background-color: var(--primary); color: white;">
+        <h3 style="color: white;"><i class="fas fa-file-invoice-dollar"></i> Lembar Rincian Rekam Medis</h3>
+        <button class="modal-close-btn" style="color: white;"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="background-color: var(--bg-base); display:flex; flex-direction:column; gap:1.25rem;">
+        
+        <!-- Section 1: Santri Info -->
+        <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+          <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.5px">Identitas Santri</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Nama Santri:</div>
+              <div style="font-weight:600" id="det-name">-</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Asrama &amp; Kamar:</div>
+              <div style="font-weight:600" id="det-room">-</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Golongan Darah:</div>
+              <div style="font-weight:600" id="det-blood">-</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Riwayat Alergi:</div>
+              <div style="font-weight:600; color:var(--danger)" id="det-allergies">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Clinical Details -->
+        <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border); display:flex; flex-direction:column; gap:0.75rem;">
+          <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.5px">Hasil Pemeriksaan Klinis</h4>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Waktu Pemeriksaan:</div>
+              <div style="font-weight:600" id="det-date">-</div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-secondary)">Rekomendasi Istirahat:</div>
+              <div style="font-weight:600; color:var(--warning)" id="det-status">-</div>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid var(--border)"/>
+
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-secondary)">Gejala / Keluhan:</div>
+            <div style="font-style:italic; font-size:0.9rem" id="det-symptoms">-</div>
+          </div>
+
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-secondary)">Diagnosis Medis:</div>
+            <div style="font-weight:700; color:var(--primary); font-size:1rem" id="det-diagnosis">-</div>
+          </div>
+
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-secondary)">Tindakan Medis:</div>
+            <div style="font-size:0.9rem" id="det-treatment">-</div>
+          </div>
+
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-secondary)">Obat Diberikan:</div>
+            <div style="font-weight:600" id="det-medicine">-</div>
+          </div>
+        </div>
+
+        <!-- Section 3: Officer -->
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-secondary)">
+          <span>Sistem Informasi Rekam Medis Poskespes</span>
+          <span>Pemeriksa: <strong id="det-officer" style="color:var(--text-primary)">-</strong></span>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-close-modal">Tutup Lembar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Modal Add/Edit Obat -->
+  <div class="modal-overlay" id="modal-obat">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modal-obat-title">Tambah Obat Baru</h3>
+        <button class="modal-close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="form-obat">
+        <div class="modal-body">
+          <input type="hidden" id="obat-action-type" value="add">
+          <input type="hidden" id="obat-id-edit" value="">
+          
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label class="form-label" for="obat-name">Nama Obat &amp; Dosis</label>
+              <input type="text" class="form-control" id="obat-name" required placeholder="Contoh: Paracetamol 500mg, Amoxicillin 500mg">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="obat-type">Jenis Obat (Satuan)</label>
+              <select class="form-control" id="obat-type" required>
+                <option value="Tablet">Tablet</option>
+                <option value="Sirup">Sirup (Botol)</option>
+                <option value="Salep">Salep (Tube)</option>
+                <option value="Cairan">Cairan (Botol)</option>
+                <option value="Kapsul">Kapsul</option>
+                <option value="Sachet">Sachet</option>
+                <option value="Pcs">Pcs</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="obat-stock">Jumlah Stok</label>
+              <input type="number" class="form-control" id="obat-stock" required min="0" value="0">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="obat-min">Stok Minimum (Batas Kritis)</label>
+              <input type="number" class="form-control" id="obat-min" required min="1" value="10">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="obat-expiry">Tanggal Kedaluwarsa</label>
+              <input type="date" class="form-control" id="obat-expiry" required>
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="form-label" for="obat-desc">Keterangan / Fungsi Obat</label>
+              <textarea class="form-control" id="obat-desc" placeholder="Contoh: Meredakan pusing, antiseptik luar..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Obat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dynamic Widget Logic & Seed connection -->
+  <script src="seed-data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Set widget current date in Indonesian
+    const dateWidget = document.getElementById('current-date-widget');
+    if (dateWidget) {
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const now = new Date();
+      dateWidget.innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    }
+  </script>
+</body>
+</html>
