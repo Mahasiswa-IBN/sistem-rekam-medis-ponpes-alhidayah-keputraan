@@ -421,6 +421,148 @@
         </div>
       </div>
 
+      <!-- PAGE 6: DETAIL RIWAYAT MEDIS SANTRI -->
+      <div id="riwayat-santri-page" class="page-view">
+        <!-- Header Halaman Riwayat -->
+        <div class="filter-bar" style="justify-content: space-between; align-items: center;">
+          <button class="btn btn-secondary" onclick="navigateTo('santri')">
+            <i class="fas fa-arrow-left"></i> Kembali ke Data Santri
+          </button>
+          <button class="btn btn-primary" id="btn-print-history" style="background: var(--secondary); box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);">
+            <i class="fas fa-print"></i> Cetak Laporan Lengkap
+          </button>
+        </div>
+
+        <div class="riwayat-container">
+          <!-- Kiri: Profil Santri -->
+          <div class="card-panel profil-santri-card">
+            <div class="card-title-bar" style="border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+              <h3><i class="fas fa-user-graduate"></i> Profil Santri</h3>
+            </div>
+            <div class="profile-detail-header" style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
+              <div class="user-avatar L" id="hist-avatar" style="width: 54px; height: 54px; font-size: 1.3rem;">-</div>
+              <div class="profile-name-section" style="display: flex; flex-direction: column;">
+                <h2 id="hist-name" style="font-size: 1.25rem; font-weight: 700; line-height: 1.2;">-</h2>
+                <span class="badge badge-jalan" id="hist-id" style="font-size: 0.75rem; margin-top: 0.25rem; width: fit-content;">ID: -</span>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.85rem; margin-top:0.5rem;">
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">NIK:</span>
+                <span class="detail-val-inline" id="hist-nik" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Jenis Kelamin:</span>
+                <span class="detail-val-inline" id="hist-gender" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Asrama &amp; Kamar:</span>
+                <span class="detail-val-inline" id="hist-dorm-room" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Umur:</span>
+                <span class="detail-val-inline" id="hist-age" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Gol. Darah:</span>
+                <span class="detail-val-inline" id="hist-blood" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Alergi:</span>
+                <span class="detail-val-inline" id="hist-allergies" style="font-weight: 600; font-size: 0.85rem; color:var(--danger)">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Orang Tua/Wali:</span>
+                <span class="detail-val-inline" id="hist-parent-name" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+              <div class="detail-item-inline" style="display: flex; justify-content: space-between; padding-bottom: 0.5rem;">
+                <span class="detail-label-inline" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">No. HP Orang Tua:</span>
+                <span class="detail-val-inline" id="hist-parent-phone" style="font-weight: 600; font-size: 0.85rem;">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kanan: Statistik KPI & Sebaran Penyakit -->
+          <div class="riwayat-stats-section">
+            <div class="riwayat-stats-grid">
+              <div class="stat-card primary" style="padding: 1.25rem;">
+                <div class="stat-details">
+                  <span class="stat-label" style="font-size: 0.75rem;">Total Kunjungan</span>
+                  <span class="stat-number" id="hist-stat-visits" style="font-size: 1.8rem;">0</span>
+                </div>
+                <div class="stat-icon-wrapper" style="width: 42px; height: 42px; font-size: 1.15rem;">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+              </div>
+              <div class="stat-card secondary" style="padding: 1.25rem;">
+                <div class="stat-details">
+                  <span class="stat-label" style="font-size: 0.75rem;">Diagnosis Terbanyak</span>
+                  <span class="stat-number" id="hist-stat-top-disease" style="font-size: 1.15rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">-</span>
+                </div>
+                <div class="stat-icon-wrapper" style="width: 42px; height: 42px; font-size: 1.15rem;">
+                  <i class="fas fa-stethoscope"></i>
+                </div>
+              </div>
+              <div class="stat-card success" style="padding: 1.25rem;">
+                <div class="stat-details">
+                  <span class="stat-label" style="font-size: 0.75rem;">Obat Terpakai</span>
+                  <span class="stat-number" id="hist-stat-medicine" style="font-size: 1.8rem;">0</span>
+                </div>
+                <div class="stat-icon-wrapper" style="width: 42px; height: 42px; font-size: 1.15rem;">
+                  <i class="fas fa-pills"></i>
+                </div>
+              </div>
+              <div class="stat-card warning" style="padding: 1.25rem;">
+                <div class="stat-details">
+                  <span class="stat-label" style="font-size: 0.75rem;">Status Terakhir</span>
+                  <span class="stat-number" id="hist-stat-last-status" style="font-size: 0.95rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">-</span>
+                </div>
+                <div class="stat-icon-wrapper" style="width: 42px; height: 42px; font-size: 1.15rem;">
+                  <i class="fas fa-user-clock"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analisis Persebaran Diagnosis Penyakit -->
+            <div class="card-panel" style="flex:1;">
+              <div class="card-title-bar" style="border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+                <h3><i class="fas fa-chart-pie"></i> Analisis Persebaran Penyakit</h3>
+              </div>
+              <div id="hist-disease-distribution" class="disease-dist-list" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem;">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bawah: Tabel Riwayat Kunjungan -->
+        <div class="card-panel">
+          <div class="card-title-bar" style="border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <h3><i class="fas fa-history"></i> Catatan Kronologis Kunjungan Medis</h3>
+          </div>
+          <div class="table-container">
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                     <th>Tanggal Kunjungan</th>
+                     <th>Keluhan / Gejala</th>
+                     <th>Diagnosis</th>
+                     <th>Tindakan / Perawatan</th>
+                     <th>Obat Diberikan</th>
+                     <th>Rekomendasi</th>
+                     <th>Pemeriksa</th>
+                  </tr>
+                </thead>
+                <tbody id="table-history-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -526,11 +668,16 @@
       <form id="form-rekam-medis">
         <div class="modal-body">
           <div class="form-grid">
-            <div class="form-group col-span-2">
-              <label class="form-label" for="rm-santri-select">Pilih Santri</label>
-              <select class="form-control" id="rm-santri-select" required>
-                <!-- Filled via JS -->
+            <div class="form-group col-span-2" style="position: relative;">
+              <label class="form-label" for="rm-santri-search">Pilih Santri</label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="text" class="form-control" id="rm-santri-search" placeholder="Cari nama, NIK, atau ID santri..." autocomplete="off" required style="width: 100%; padding-right: 2.5rem;">
+                <i class="fas fa-search" style="position: absolute; right: 1rem; color: var(--text-secondary); pointer-events: none;"></i>
+              </div>
+              <select id="rm-santri-select" style="display: none;" required>
+                <!-- Filled via JS to keep app logic intact -->
               </select>
+              <div id="rm-santri-search-results" class="custom-select-results" style="display: none;"></div>
             </div>
 
             <div class="form-group">
@@ -668,6 +815,9 @@
 
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-print-detail-rm" style="gap:0.4rem;">
+          <i class="fas fa-print"></i> Cetak Lembar
+        </button>
         <button type="button" class="btn btn-primary btn-close-modal">Tutup Lembar</button>
       </div>
     </div>
@@ -732,6 +882,9 @@
       </form>
     </div>
   </div>
+
+  <!-- Hidden print container -->
+  <div id="print-section"></div>
 
   <!-- Dynamic Widget Logic & Seed connection -->
   <script src="seed-data.js"></script>

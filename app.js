@@ -4,7 +4,9 @@
 let state = {
   santri: [],
   obat: [],
-  rekamMedis: []
+  rekamMedis: [],
+  activeSantriId: null,
+  activeRMId: null
 };
 
 // LocalStorage Keys
@@ -319,6 +321,9 @@ function navigateTo(pageId) {
     case 'analisis':
       renderAnalytics();
       break;
+    case 'riwayat-santri':
+      renderSantriHistoryPage();
+      break;
   }
 }
 
@@ -360,6 +365,23 @@ function setupEventListeners() {
   // Custom Validation: Obat Stock deduct preview in RM Form
   document.getElementById('rm-obat-qty').addEventListener('input', validateObatQtyInForm);
   document.getElementById('rm-obat-select').addEventListener('change', validateObatQtyInForm);
+
+  // Print History & Detail RM Buttons
+  const btnPrintHistory = document.getElementById('btn-print-history');
+  if (btnPrintHistory) {
+    btnPrintHistory.addEventListener('click', printSantriHistory);
+  }
+
+  const btnPrintDetailRM = document.getElementById('btn-print-detail-rm');
+  if (btnPrintDetailRM) {
+    btnPrintDetailRM.addEventListener('click', () => {
+      if (state.activeRMId) {
+        printSingleRMDetail(state.activeRMId);
+      } else {
+        alert('Data rekam medis tidak ditemukan.');
+      }
+    });
+  }
 }
 
 // -------------------------------------------------------------
@@ -547,6 +569,9 @@ function renderSantriList() {
       </td>
       <td>
         <div class="action-group">
+          <button class="btn btn-secondary btn-sm btn-icon" style="color: var(--primary)" onclick="viewSantriHistory('${s.id}')" title="Lihat Riwayat Medis">
+            <i class="fas fa-notes-medical"></i>
+          </button>
           <button class="btn btn-secondary btn-sm btn-icon" onclick="openEditSantriModal('${s.id}')" title="Edit Profil">
             <i class="fas fa-edit"></i>
           </button>
@@ -837,6 +862,136 @@ function populateRMSantriDropdown() {
     opt.innerText = `${s.name} (${s.dorm} - ${s.room})`;
     select.appendChild(opt);
   });
+
+  // Initialize custom searchable combobox
+  initRMSantriSearch(sortedSantri);
+}
+
+function initRMSantriSearch(sortedSantri) {
+  const searchInput = document.getElementById('rm-santri-search');
+  const resultsDiv = document.getElementById('rm-santri-search-results');
+  const hiddenSelect = document.getElementById('rm-santri-select');
+
+  if (!searchInput || !resultsDiv || !hiddenSelect) return;
+
+  let activeIndex = -1;
+  let currentOptions = [];
+
+  function renderOptions(filteredList) {
+    resultsDiv.innerHTML = '';
+    currentOptions = filteredList;
+    activeIndex = -1;
+    
+    if (filteredList.length === 0) {
+      resultsDiv.innerHTML = '<div style="padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">Santri tidak ditemukan</div>';
+      resultsDiv.style.display = 'block';
+      return;
+    }
+
+    filteredList.forEach((s, idx) => {
+      const option = document.createElement('div');
+      option.className = 'custom-select-option';
+      option.setAttribute('data-id', s.id);
+      option.setAttribute('data-index', idx);
+      
+      option.innerHTML = `
+        <div class="custom-select-option-title">${s.name}</div>
+        <div class="custom-select-option-sub">ID: ${s.id} | NIK: ${s.nik || '-'} | ${s.dorm} - ${s.room}</div>
+      `;
+
+      option.addEventListener('click', () => {
+        selectStudent(s);
+      });
+
+      resultsDiv.appendChild(option);
+    });
+
+    resultsDiv.style.display = 'block';
+  }
+
+  function selectStudent(student) {
+    searchInput.value = `${student.name} (${student.dorm} - ${student.room})`;
+    hiddenSelect.value = student.id;
+    resultsDiv.style.display = 'none';
+    searchInput.setCustomValidity('');
+  }
+
+  // Input event to filter options
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    if (query === '') {
+      renderOptions(sortedSantri);
+      hiddenSelect.value = '';
+    } else {
+      const filtered = sortedSantri.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        s.id.toLowerCase().includes(query) || 
+        (s.nik && s.nik.includes(query))
+      );
+      renderOptions(filtered);
+      hiddenSelect.value = ''; // Reset select value until an option is chosen
+    }
+  });
+
+  // Focus event to show all options
+  searchInput.addEventListener('focus', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    if (query === '') {
+      renderOptions(sortedSantri);
+    } else {
+      const filtered = sortedSantri.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        s.id.toLowerCase().includes(query) || 
+        (s.nik && s.nik.includes(query))
+      );
+      renderOptions(filtered);
+    }
+  });
+
+  // Keyboard navigation support for premium feel
+  searchInput.addEventListener('keydown', (e) => {
+    const options = resultsDiv.querySelectorAll('.custom-select-option');
+    if (resultsDiv.style.display === 'none' || options.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = (activeIndex + 1) % options.length;
+      updateActiveOption(options);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = (activeIndex - 1 + options.length) % options.length;
+      updateActiveOption(options);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < currentOptions.length) {
+        selectStudent(currentOptions[activeIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      resultsDiv.style.display = 'none';
+    }
+  });
+
+  function updateActiveOption(options) {
+    options.forEach((opt, idx) => {
+      if (idx === activeIndex) {
+        opt.classList.add('focused');
+        opt.scrollIntoView({ block: 'nearest' });
+      } else {
+        opt.classList.remove('focused');
+      }
+    });
+  }
+
+  // Click outside to close
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+      resultsDiv.style.display = 'none';
+      // If user typed something custom but didn't select, reset
+      if (!hiddenSelect.value) {
+        searchInput.value = '';
+      }
+    }
+  });
 }
 
 function populateRMObatDropdown() {
@@ -881,6 +1036,21 @@ function validateObatQtyInForm() {
 
 function openAddRMModal() {
   document.getElementById('form-rekam-medis').reset();
+  
+  // Reset searchable select elements
+  const searchInput = document.getElementById('rm-santri-search');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+  const resultsDiv = document.getElementById('rm-santri-search-results');
+  if (resultsDiv) {
+    resultsDiv.innerHTML = '';
+    resultsDiv.style.display = 'none';
+  }
+  const select = document.getElementById('rm-santri-select');
+  if (select) {
+    select.value = '';
+  }
   
   // Set date to current local datetime
   const now = new Date();
@@ -956,6 +1126,8 @@ function handleRMSubmit(e) {
 function openDetailRMModal(id) {
   const rm = state.rekamMedis.find(r => r.id === id);
   if (!rm) return;
+
+  state.activeRMId = id;
 
   const santriObj = state.santri.find(s => s.id === rm.santriId) || { name: 'Santri Terhapus', dorm: '-', room: '-', parentName: '-', parentPhone: '-', allergies: '-', bloodType: '-' };
   const medicineObj = state.obat.find(o => o.id === rm.medicineId) || { name: 'Tidak ada obat / Obat luar' };
@@ -1444,3 +1616,361 @@ window.toggleNikVisibility = function(button) {
     }
   }
 };
+
+// =============================================================
+// LOGIKA DETAIL RIWAYAT MEDIS SANTRI (DEDICATED VIEW & PRINT)
+// =============================================================
+
+function viewSantriHistory(santriId) {
+  state.activeSantriId = santriId;
+  navigateTo('riwayat-santri');
+}
+
+function renderSantriHistoryPage() {
+  const santriId = state.activeSantriId;
+  if (!santriId) {
+    navigateTo('santri');
+    return;
+  }
+
+  const santri = state.santri.find(s => s.id === santriId);
+  if (!santri) {
+    navigateTo('santri');
+    return;
+  }
+
+  // 1. Render Profil Santri
+  const initial = santri.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  const avatarType = santri.gender === 'Laki-laki' ? 'L' : 'P';
+  
+  const avatarEl = document.getElementById('hist-avatar');
+  if (avatarEl) {
+    avatarEl.innerText = initial;
+    avatarEl.className = `user-avatar ${avatarType}`;
+  }
+
+  document.getElementById('hist-name').innerText = santri.name;
+  document.getElementById('hist-id').innerText = `ID: ${santri.id}`;
+  document.getElementById('hist-nik').innerText = santri.nik || '-';
+  document.getElementById('hist-gender').innerText = santri.gender;
+  document.getElementById('hist-dorm-room').innerText = `${santri.dorm} - ${santri.room}`;
+  document.getElementById('hist-age').innerText = `${calculateAge(santri.birthDate)} Tahun (${formatDate(santri.birthDate)})`;
+  document.getElementById('hist-blood').innerText = santri.bloodType || '-';
+  document.getElementById('hist-allergies').innerText = santri.allergies || 'Tidak ada';
+  document.getElementById('hist-parent-name').innerText = santri.parentName;
+  document.getElementById('hist-parent-phone').innerText = santri.parentPhone;
+
+  // 2. Ambil catatan medis khusus santri ini
+  const studentRM = state.rekamMedis.filter(rm => rm.santriId === santriId);
+  // Urutkan tanggal terbaru di atas
+  studentRM.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // 3. Hitung Statistik Medis Santri
+  const totalVisits = studentRM.length;
+  document.getElementById('hist-stat-visits').innerText = totalVisits;
+
+  let totalMedicineQty = 0;
+  studentRM.forEach(rm => {
+    if (rm.medicineQty) totalMedicineQty += rm.medicineQty;
+  });
+  document.getElementById('hist-stat-medicine').innerText = totalMedicineQty;
+
+  let lastStatus = '-';
+  if (studentRM.length > 0) {
+    lastStatus = studentRM[0].status;
+  }
+  document.getElementById('hist-stat-last-status').innerText = lastStatus;
+
+  let topDisease = '-';
+  const diagCounts = {};
+  studentRM.forEach(rm => {
+    diagCounts[rm.diagnosis] = (diagCounts[rm.diagnosis] || 0) + 1;
+  });
+  const sortedDiags = Object.entries(diagCounts).sort((a, b) => b[1] - a[1]);
+  if (sortedDiags.length > 0) {
+    topDisease = sortedDiags[0][0];
+  }
+  document.getElementById('hist-stat-top-disease').innerText = topDisease;
+  document.getElementById('hist-stat-top-disease').title = topDisease;
+
+  // 4. Render Distribusi Diagnosis Penyakit (Progress Bar CSS)
+  const distContainer = document.getElementById('hist-disease-distribution');
+  distContainer.innerHTML = '';
+
+  if (sortedDiags.length === 0) {
+    distContainer.innerHTML = '<div style="font-size:0.85rem; color:var(--text-secondary); text-align:center; padding:1.5rem 0;">Belum ada diagnosis penyakit.</div>';
+  } else {
+    const top5Diags = sortedDiags.slice(0, 5);
+    top5Diags.forEach(([diagName, count]) => {
+      const percentage = totalVisits > 0 ? Math.round((count / totalVisits) * 100) : 0;
+      
+      const item = document.createElement('div');
+      item.className = 'disease-dist-item';
+      item.innerHTML = `
+        <div class="disease-dist-info">
+          <span class="disease-dist-name">${diagName}</span>
+          <span class="disease-dist-count">${count} Kunjungan (${percentage}%)</span>
+        </div>
+        <div class="disease-dist-bar-outer">
+          <div class="disease-dist-bar-inner" style="width: ${percentage}%;"></div>
+        </div>
+      `;
+      distContainer.appendChild(item);
+    });
+  }
+
+  // 5. Render Tabel Kronologi Kunjungan
+  const tbody = document.getElementById('table-history-body');
+  tbody.innerHTML = '';
+
+  if (studentRM.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 2.5rem 0;">
+          <div class="empty-state">
+            <i class="fas fa-file-medical-alt" style="font-size: 2rem;"></i>
+            <h4>Belum Ada Catatan Medis</h4>
+            <p>Santri ini belum memiliki riwayat kunjungan ke Poskespes.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  studentRM.forEach(rm => {
+    const tr = document.createElement('tr');
+    const medicineObj = state.obat.find(o => o.id === rm.medicineId) || { name: 'Tidak ada' };
+    const dateFormatted = formatDateTime(rm.date);
+
+    let badgeClass = 'badge-jalan';
+    if (rm.status === 'Istirahat di Kamar') badgeClass = 'badge-kamar';
+    else if (rm.status === 'Istirahat di Poskespes') badgeClass = 'badge-poskespes';
+    else if (rm.status === 'Rujuk Rumah Sakit') badgeClass = 'badge-rujuk';
+
+    let medicineText = medicineObj.name;
+    if (rm.medicineQty > 0) {
+      medicineText += ` (${rm.medicineQty})`;
+    }
+
+    tr.innerHTML = `
+      <td style="font-weight: 500">${dateFormatted}</td>
+      <td style="max-width: 220px; word-break: break-word;">${rm.symptoms}</td>
+      <td><span style="font-weight: 600; color: var(--primary)">${rm.diagnosis}</span></td>
+      <td style="max-width: 220px; word-break: break-word;">${rm.treatment || '-'}</td>
+      <td>${medicineText}</td>
+      <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${rm.status}</span></td>
+      <td style="font-weight: 500">${rm.officer || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function printSantriHistory() {
+  const santriId = state.activeSantriId;
+  if (!santriId) return;
+
+  const santri = state.santri.find(s => s.id === santriId);
+  if (!santri) return;
+
+  const studentRM = state.rekamMedis.filter(rm => rm.santriId === santriId);
+  studentRM.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Render baris kunjungan untuk print
+  let visitsRows = '';
+  if (studentRM.length === 0) {
+    visitsRows = `
+      <tr>
+        <td colspan="6" style="text-align: center; font-style: italic; padding: 1rem;">Belum ada riwayat kunjungan medis.</td>
+      </tr>
+    `;
+  } else {
+    studentRM.forEach(rm => {
+      const medicineObj = state.obat.find(o => o.id === rm.medicineId) || { name: 'Tidak ada' };
+      const dateFormatted = formatDateTime(rm.date);
+      let medicineText = medicineObj.name;
+      if (rm.medicineQty > 0) {
+        medicineText += ` (${rm.medicineQty})`;
+      }
+      visitsRows += `
+        <tr>
+          <td>${dateFormatted}</td>
+          <td>${rm.symptoms}</td>
+          <td style="font-weight: bold;">${rm.diagnosis}</td>
+          <td>${rm.treatment || '-'}</td>
+          <td>${medicineText}</td>
+          <td>${rm.status}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // Hitung statistik rekapitulasi cetak
+  const totalVisits = studentRM.length;
+  let totalMedicineQty = 0;
+  studentRM.forEach(rm => {
+    if (rm.medicineQty) totalMedicineQty += rm.medicineQty;
+  });
+  let topDisease = '-';
+  const diagCounts = {};
+  studentRM.forEach(rm => {
+    diagCounts[rm.diagnosis] = (diagCounts[rm.diagnosis] || 0) + 1;
+  });
+  const sortedDiags = Object.entries(diagCounts).sort((a, b) => b[1] - a[1]);
+  if (sortedDiags.length > 0) {
+    topDisease = sortedDiags[0][0];
+  }
+  let lastStatus = studentRM.length > 0 ? studentRM[0].status : '-';
+
+  const today = new Date();
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const formattedToday = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+
+  const printSection = document.getElementById('print-section');
+  printSection.innerHTML = `
+    <!-- Kop Surat Resmi -->
+    <div class="print-kop-surat">
+      <div class="print-logo"><i class="fas fa-heartbeat" style="color: #000; font-size: 2.5rem;"></i></div>
+      <div class="print-kop-text">
+        <h1 style="margin: 0; font-size: 1.4rem;">POS KESEHATAN PESANTREN (POSKESPES)</h1>
+        <h1 style="margin: 0; font-size: 1.4rem;">PONDOK PESANTREN AL-HIDAYAH KEPUTRAAN</h1>
+        <p style="margin: 2px 0 0 0; font-size: 0.8rem;">Jl. KH. Hasyim Asy'ari No. 12, Keputraan, Kec. Kedungwuni, Kabupaten Pekalongan, Jawa Tengah 51181</p>
+        <p style="margin: 2px 0 0 0; font-size: 0.8rem;">Email: poskespes@alhidayah-keputraan.sch.id | Telp: (0285) 441234</p>
+      </div>
+    </div>
+
+    <!-- Judul Dokumen -->
+    <div class="print-doc-title" style="margin-top: 1rem;">LAPORAN RIWAYAT KESEHATAN SANTRI</div>
+
+    <!-- Sub-section: Identitas -->
+    <div class="print-section-title">Identitas Lengkap Santri</div>
+    <div class="print-profile-grid">
+      <div class="print-grid-item"><span class="print-grid-label">Nama Lengkap</span><span>: ${santri.name}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">ID / NIK</span><span>: ${santri.id} / ${santri.nik || '-'}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Jenis Kelamin</span><span>: ${santri.gender}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Asrama &amp; Kamar</span><span>: ${santri.dorm} - ${santri.room}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Golongan Darah</span><span>: ${santri.bloodType || '-'}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Riwayat Alergi</span><span>: ${santri.allergies || 'Tidak ada'}</span></div>
+      <div class="print-grid-item" style="grid-column: span 2;"><span class="print-grid-label">Orang Tua / HP</span><span>: ${santri.parentName} (${santri.parentPhone})</span></div>
+    </div>
+
+    <!-- Sub-section: Ringkasan Medis -->
+    <div class="print-section-title">Ringkasan Statistik Medis</div>
+    <div class="print-profile-grid" style="margin-bottom: 1.5rem;">
+      <div class="print-grid-item"><span class="print-grid-label">Total Kunjungan</span><span>: ${totalVisits} kali</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Diagnosis Terbanyak</span><span>: ${topDisease}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Obat Terpakai</span><span>: ${totalMedicineQty} unit</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Status Terakhir</span><span>: ${lastStatus}</span></div>
+    </div>
+
+    <!-- Sub-section: Tabel Riwayat -->
+    <div class="print-section-title">Daftar Kronologis Kunjungan Medis</div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th style="width: 18%;">Tanggal</th>
+          <th style="width: 25%;">Keluhan / Gejala</th>
+          <th style="width: 18%;">Diagnosis</th>
+          <th style="width: 20%;">Tindakan / Perawatan</th>
+          <th style="width: 12%;">Obat</th>
+          <th style="width: 12%;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${visitsRows}
+      </tbody>
+    </table>
+
+    <!-- Tanda Tangan Penutup -->
+    <div class="print-signature-section">
+      <div class="print-sig-col">
+        <p>Mengetahui,</p>
+        <p>Pimpinan Pondok Pesantren</p>
+        <div class="print-sig-space"></div>
+        <p class="print-sig-name">KH. Ahmad Rofi'i, M.Pd.</p>
+      </div>
+      <div class="print-sig-col">
+        <p>Pekalongan, ${formattedToday}</p>
+        <p>Petugas Poskespes,</p>
+        <div class="print-sig-space"></div>
+        <p class="print-sig-name">Pengelola Poskespes</p>
+      </div>
+    </div>
+  `;
+
+  window.print();
+  printSection.innerHTML = '';
+}
+
+function printSingleRMDetail(rmId) {
+  const rm = state.rekamMedis.find(r => r.id === rmId);
+  if (!rm) return;
+
+  const santri = state.santri.find(s => s.id === rm.santriId) || { name: 'Santri Terhapus', dorm: '-', room: '-', parentName: '-', parentPhone: '-', allergies: '-', bloodType: '-', nik: '-' };
+  const medicineObj = state.obat.find(o => o.id === rm.medicineId) || { name: 'Tidak ada obat / Obat luar' };
+  
+  let medicineText = medicineObj.name;
+  if (rm.medicineQty > 0) {
+    medicineText += ` (${rm.medicineQty} ${medicineObj.type || ''})`;
+  }
+
+  const today = new Date();
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const formattedToday = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+
+  const printSection = document.getElementById('print-section');
+  printSection.innerHTML = `
+    <!-- Kop Surat Resmi -->
+    <div class="print-kop-surat">
+      <div class="print-logo"><i class="fas fa-heartbeat" style="color: #000; font-size: 2.5rem;"></i></div>
+      <div class="print-kop-text">
+        <h1 style="margin: 0; font-size: 1.4rem;">POS KESEHATAN PESANTREN (POSKESPES)</h1>
+        <h1 style="margin: 0; font-size: 1.4rem;">PONDOK PESANTREN AL-HIDAYAH KEPUTRAAN</h1>
+        <p style="margin: 2px 0 0 0; font-size: 0.8rem;">Jl. KH. Hasyim Asy'ari No. 12, Keputraan, Kec. Kedungwuni, Kabupaten Pekalongan, Jawa Tengah 51181</p>
+        <p style="margin: 2px 0 0 0; font-size: 0.8rem;">Email: poskespes@alhidayah-keputraan.sch.id | Telp: (0285) 441234</p>
+      </div>
+    </div>
+
+    <!-- Judul Dokumen -->
+    <div class="print-doc-title" style="margin-top: 1rem;">SURAT KETERANGAN REKAM MEDIS SANTRI</div>
+
+    <!-- Sub-section: Identitas -->
+    <div class="print-section-title">Identitas Santri</div>
+    <div class="print-profile-grid">
+      <div class="print-grid-item"><span class="print-grid-label">Nama Lengkap</span><span>: ${santri.name}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">ID / NIK</span><span>: ${santri.id} / ${santri.nik || '-'}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Asrama &amp; Kamar</span><span>: ${santri.dorm} - ${santri.room}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label">Golongan Darah</span><span>: ${santri.bloodType || '-'}</span></div>
+      <div class="print-grid-item" style="grid-column: span 2;"><span class="print-grid-label">Riwayat Alergi</span><span>: ${santri.allergies || 'Tidak ada'}</span></div>
+    </div>
+
+    <!-- Sub-section: Rincian Pemeriksaan -->
+    <div class="print-section-title">Rincian Hasil Kunjungan Medis</div>
+    <div class="print-profile-grid" style="grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 2rem;">
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Waktu Pemeriksaan</span><span>: ${formatDateTime(rm.date)}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Gejala / Keluhan</span><span>: ${rm.symptoms}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Diagnosis Medis</span><span style="font-weight: bold;">: ${rm.diagnosis}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Tindakan Medis</span><span>: ${rm.treatment || '-'}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Pemberian Obat</span><span>: ${medicineText}</span></div>
+      <div class="print-grid-item"><span class="print-grid-label" style="width: 180px;">Rekomendasi Istirahat</span><span style="font-weight: bold; text-transform: uppercase;">: ${rm.status}</span></div>
+    </div>
+
+    <!-- Tanda Tangan Penutup -->
+    <div class="print-signature-section">
+      <div class="print-sig-col">
+        <div class="print-sig-space"></div>
+      </div>
+      <div class="print-sig-col">
+        <p>Pekalongan, ${formattedToday}</p>
+        <p>Petugas Pemeriksa,</p>
+        <div class="print-sig-space"></div>
+        <p class="print-sig-name" style="font-weight: bold;">${rm.officer || 'Pengelola Poskespes'}</p>
+      </div>
+    </div>
+  `;
+
+  window.print();
+  printSection.innerHTML = '';
+}
