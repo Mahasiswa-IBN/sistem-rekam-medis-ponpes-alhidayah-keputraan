@@ -16,6 +16,57 @@
 </head>
 <body>
 
+  <!-- Login Container -->
+  <div id="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i class="fas fa-heartbeat"></i>
+        </div>
+        <h2 class="login-title">Poskespes Al-Hidayah</h2>
+        <p class="login-subtitle">Silakan masuk menggunakan akun admin Poskespes Al-Hidayah Keputran</p>
+      </div>
+
+      <form id="form-login" class="login-form">
+        <div class="input-group">
+          <label class="input-label" for="login-username">Username</label>
+          <div class="input-field-wrapper">
+            <input type="text" id="login-username" class="input-field" required placeholder="Masukkan username">
+            <i class="fas fa-user prefix-icon"></i>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="login-password">Password</label>
+          <div class="input-field-wrapper">
+            <input type="password" id="login-password" class="input-field" required placeholder="Masukkan password">
+            <i class="fas fa-lock prefix-icon"></i>
+            <button type="button" class="password-toggle" id="btn-toggle-password" title="Tampilkan Password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-error-msg" id="login-error">
+          <i class="fas fa-exclamation-circle"></i> Username atau password salah!
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-login">
+          <i class="fas fa-sign-in-alt"></i> Masuk ke Sistem
+        </button>
+
+        <div class="demo-badge">
+          <i class="fas fa-info-circle"></i>
+          <div>
+            <strong>Info Akun Demo:</strong><br/>
+            Username: <code style="font-family: monospace; font-weight: bold; opacity: 0.95;">admin</code><br/>
+            Password: <code style="font-family: monospace; font-weight: bold; opacity: 0.95;">admin123</code>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Mobile Top Navigation Header -->
   <header class="mobile-header">
     <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -38,6 +89,24 @@
         <div class="brand-name">
           <span class="brand-title">Al-Hidayah</span>
           <span class="brand-subtitle">REKAM MEDIS POSKESPES</span>
+        </div>
+      </div>
+
+      <!-- Admin Profile Section -->
+      <div class="sidebar-profile">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar" id="sidebar-avatar-display">
+            <i class="fas fa-user-shield" id="sidebar-avatar-icon"></i>
+            <img id="sidebar-avatar-img" src="" alt="Admin Profile" style="display: none;">
+          </div>
+          <label for="admin-avatar-input" class="profile-avatar-edit" title="Ubah Foto Profil">
+            <i class="fas fa-camera"></i>
+          </label>
+          <input type="file" id="admin-avatar-input" accept="image/*" style="display: none;">
+        </div>
+        <div class="profile-info">
+          <span class="profile-name">Admin Poskespes</span>
+          <span class="profile-role">Pengelola Utama</span>
         </div>
       </div>
 
@@ -73,6 +142,12 @@
               <span>Analisis Kesehatan</span>
             </a>
           </li>
+          <li class="nav-item" style="margin-top: auto;">
+            <a href="#" id="btn-logout" style="color: hsl(350, 85%, 75%);">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Keluar (Logout)</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -102,6 +177,14 @@
           <div class="info-widget">
             <i class="fas fa-calendar-alt"></i>
             <span id="current-date-widget">Sabtu, 6 Juni 2026</span>
+          </div>
+          
+          <div class="header-profile-widget">
+            <div class="header-avatar" id="header-avatar-display">
+              <i class="fas fa-user-shield" id="header-avatar-icon"></i>
+              <img id="header-avatar-img" src="" alt="Admin Profile" style="display: none;">
+            </div>
+            <span class="header-admin-name">Admin</span>
           </div>
         </div>
       </section>
@@ -356,6 +439,17 @@
           <input type="hidden" id="santri-id-edit" value="">
           
           <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label class="form-label" for="santri-nik">NIK Santri (16 Digit)</label>
+              <div style="display: flex; gap: 0.5rem; width: 100%;">
+                <input type="text" class="form-control" id="santri-nik" required maxlength="16" placeholder="Masukkan 16 digit NIK..." style="flex: 1;">
+                <button type="button" class="btn btn-secondary" id="btn-cek-nik" style="padding: 0.75rem 1rem;" title="Auto-fill data dari database NIK">
+                  <i class="fas fa-search"></i> Cek NIK
+                </button>
+              </div>
+              <span id="nik-check-feedback" style="font-size: 0.75rem; font-weight: 600; display: none; margin-top: 0.25rem;"></span>
+            </div>
+
             <div class="form-group col-span-2">
               <label class="form-label" for="santri-name">Nama Lengkap Santri</label>
               <input type="text" class="form-control" id="santri-name" required placeholder="Contoh: Ahmad Fauzan">

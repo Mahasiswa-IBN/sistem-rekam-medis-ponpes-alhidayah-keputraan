@@ -5,6 +5,7 @@ window.INITIAL_DATA = {
   santri: [
     {
       id: "S001",
+      nik: "3201021204090001",
       name: "Muhammad Fatih Al-Fatih",
       gender: "Laki-laki",
       room: "Kamar 03 (Sunan Ampel)",
@@ -17,6 +18,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S002",
+      nik: "3201022208100002",
       name: "Ahmad Zaki Yamani",
       gender: "Laki-laki",
       room: "Kamar 05 (Sunan Giri)",
@@ -29,6 +31,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S003",
+      nik: "3201025501110003",
       name: "Fatimah Az-Zahra",
       gender: "Perempuan",
       room: "Kamar Khadijah 1",
@@ -41,6 +44,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S004",
+      nik: "3201027011080004",
       name: "Siti Aminah Lubis",
       gender: "Perempuan",
       room: "Kamar Aisyah 3",
@@ -53,6 +57,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S005",
+      nik: "3201020909090005",
       name: "Rizky Ramadhan",
       gender: "Laki-laki",
       room: "Kamar 01 (Sunan Kalijaga)",
@@ -65,6 +70,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S006",
+      nik: "3201025805100006",
       name: "Naila Husna",
       gender: "Perempuan",
       room: "Kamar Fatimah 2",
@@ -77,6 +83,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S007",
+      nik: "3201022502080007",
       name: "M. Dzakwan Al-Ghifari",
       gender: "Laki-laki",
       room: "Kamar 03 (Sunan Ampel)",
@@ -89,6 +96,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S008",
+      nik: "3201024707120008",
       name: "Aisyah Humaira",
       gender: "Perempuan",
       room: "Kamar Khadijah 2",
@@ -101,6 +109,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S009",
+      nik: "3201021112070009",
       name: "Yusuf Al-Baqir",
       gender: "Laki-laki",
       room: "Kamar 02 (Sunan Kalijaga)",
@@ -113,6 +122,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S010",
+      nik: "3201024303090010",
       name: "Zahra Nur Latifah",
       gender: "Perempuan",
       room: "Kamar Aisyah 1",
@@ -125,6 +135,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S011",
+      nik: "3201020510110011",
       name: "Luqman Hakim",
       gender: "Laki-laki",
       room: "Kamar 06 (Sunan Giri)",
@@ -137,6 +148,7 @@ window.INITIAL_DATA = {
     },
     {
       id: "S012",
+      nik: "3201026006100012",
       name: "Hafsah Binti Umar",
       gender: "Perempuan",
       room: "Kamar Fatimah 1",
@@ -422,4 +434,52 @@ window.INITIAL_DATA = {
       officer: "Ustadz Hanafi"
     }
   ]
+};
+
+// Database Kependudukan Mock untuk Auto-fill berdasarkan NIK Santri
+window.MOCK_NIK_DATABASE = {
+  "3201021504090005": {
+    name: "Ahmad Fauzan Hidayat",
+    gender: "Laki-laki",
+    dorm: "Putra",
+    room: "Kamar 04 (Sunan Ampel)",
+    birthDate: "2009-04-15",
+    parentName: "H. Supardi",
+    parentPhone: "081299887766",
+    bloodType: "A",
+    allergies: "Udang, Parasetamol"
+  },
+  "3201025508100006": {
+    name: "Nailah Salsabila Putri",
+    gender: "Perempuan",
+    dorm: "Putri",
+    room: "Kamar Khadijah 3",
+    birthDate: "2010-08-25",
+    parentName: "Siti Aminah Wati",
+    parentPhone: "087766554433",
+    bloodType: "O",
+    allergies: "Cuaca Dingin"
+  },
+  "3201021811080007": {
+    name: "Rizky Hidayatullah",
+    gender: "Laki-laki",
+    dorm: "Putra",
+    room: "Kamar 02 (Sunan Kalijaga)",
+    birthDate: "2008-11-28",
+    parentName: "M. Yunus Salim",
+    parentPhone: "085698765432",
+    bloodType: "B",
+    allergies: "Kacang Tanah"
+  },
+  "3201024205110008": {
+    name: "Fatimah Zahra Al-Munawwar",
+    gender: "Perempuan",
+    dorm: "Putri",
+    room: "Kamar Aisyah 1",
+    birthDate: "2011-05-18",
+    parentName: "Supriyanto Eko",
+    parentPhone: "089912345678",
+    bloodType: "AB",
+    allergies: "Tidak ada"
+  }
 };

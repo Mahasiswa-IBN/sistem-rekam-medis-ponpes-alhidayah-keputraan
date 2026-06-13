@@ -21,8 +21,179 @@ document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupRouting();
   setupEventListeners();
-  navigateTo('dashboard'); // Default page
+  setupAuthEvents();
+  
+  if (isLoggedIn()) {
+    checkAuth();
+    navigateTo('dashboard'); // Default page
+  } else {
+    checkAuth();
+  }
 });
+
+// Authentication Helpers
+function isLoggedIn() {
+  return localStorage.getItem('alhidayah_admin_logged_in') === 'true';
+}
+
+function checkAuth() {
+  if (isLoggedIn()) {
+    document.body.classList.remove('not-logged-in');
+    loadAdminAvatar();
+  } else {
+    document.body.classList.add('not-logged-in');
+  }
+}
+
+function loadAdminAvatar() {
+  const savedAvatar = localStorage.getItem('alhidayah_admin_avatar');
+  const sidebarImg = document.getElementById('sidebar-avatar-img');
+  const sidebarIcon = document.getElementById('sidebar-avatar-icon');
+  const headerImg = document.getElementById('header-avatar-img');
+  const headerIcon = document.getElementById('header-avatar-icon');
+  
+  if (savedAvatar) {
+    if (sidebarImg) {
+      sidebarImg.src = savedAvatar;
+      sidebarImg.style.display = 'block';
+    }
+    if (sidebarIcon) sidebarIcon.style.display = 'none';
+    
+    if (headerImg) {
+      headerImg.src = savedAvatar;
+      headerImg.style.display = 'block';
+    }
+    if (headerIcon) headerIcon.style.display = 'none';
+  } else {
+    if (sidebarImg) {
+      sidebarImg.src = '';
+      sidebarImg.style.display = 'none';
+    }
+    if (sidebarIcon) sidebarIcon.style.display = 'flex';
+    
+    if (headerImg) {
+      headerImg.src = '';
+      headerImg.style.display = 'none';
+    }
+    if (headerIcon) headerIcon.style.display = 'flex';
+  }
+}
+
+function setupAuthEvents() {
+  // Login Form Submission
+  const loginForm = document.getElementById('form-login');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      const errorMsg = document.getElementById('login-error');
+      
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (username === 'admin' && password === 'admin123') {
+        localStorage.setItem('alhidayah_admin_logged_in', 'true');
+        errorMsg.style.display = 'none';
+        usernameInput.value = '';
+        passwordInput.value = '';
+        checkAuth();
+        navigateTo('dashboard');
+        showNotification('Berhasil Masuk', 'Selamat datang kembali, Admin!');
+      } else {
+        errorMsg.style.display = 'flex';
+        // shake effect on card
+        const loginCard = document.querySelector('.login-card');
+        if (loginCard) {
+          loginCard.style.animation = 'none';
+          void loginCard.offsetWidth; // trigger reflow
+          loginCard.style.animation = 'shake 0.3s ease-in-out';
+        }
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    });
+  }
+
+  // Logout Button
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+        localStorage.removeItem('alhidayah_admin_logged_in');
+        checkAuth();
+        showNotification('Keluar Selesai', 'Anda telah berhasil keluar dari sistem.');
+      }
+    });
+  }
+
+  // Password Visibility Toggle
+  const togglePasswordBtn = document.getElementById('btn-toggle-password');
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener('click', () => {
+      const passwordInput = document.getElementById('login-password');
+      const icon = togglePasswordBtn.querySelector('i');
+      if (passwordInput && icon) {
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          icon.className = 'fas fa-eye-slash';
+        } else {
+          passwordInput.type = 'password';
+          icon.className = 'fas fa-eye';
+        }
+      }
+    });
+  }
+
+  // Admin Avatar Upload Handling
+  const avatarInput = document.getElementById('admin-avatar-input');
+  if (avatarInput) {
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          alert('Silakan pilih file gambar yang valid.');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Ukuran file terlalu besar! Maksimal 2MB.');
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            localStorage.setItem('alhidayah_admin_avatar', event.target.result);
+            loadAdminAvatar();
+            showNotification('Foto Diperbarui', 'Foto profil admin berhasil diubah.');
+          } catch (err) {
+            console.error(err);
+            alert('Gagal menyimpan foto. Ukuran file mungkin terlalu besar.');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+}
+
+// Obfuscation / Simple Encryption for NIK to secure it in LocalStorage
+function encodeNIK(nik) {
+  if (!nik) return '';
+  return nik.split('').map(c => {
+    if (isNaN(c)) return c;
+    return String((parseInt(c) + 3) % 10);
+  }).join('');
+}
+
+function decodeNIK(obfuscatedNik) {
+  if (!obfuscatedNik) return '';
+  return obfuscatedNik.split('').map(c => {
+    if (isNaN(c)) return c;
+    return String((parseInt(c) + 10 - 3) % 10);
+  }).join('');
+}
 
 // Load data from LocalStorage or seed data
 function loadData() {
@@ -34,6 +205,11 @@ function loadData() {
     state.santri = JSON.parse(localSantri);
     state.obat = JSON.parse(localObat);
     state.rekamMedis = JSON.parse(localRM);
+    
+    // Decrypt NIKs loaded from localstorage
+    state.santri.forEach(s => {
+      if (s.nik) s.nik = decodeNIK(s.nik);
+    });
   } else {
     // Load default seed data
     state.santri = window.INITIAL_DATA.santri;
@@ -45,7 +221,12 @@ function loadData() {
 
 // Save helpers
 function saveAllToStorage() {
-  localStorage.setItem(STORAGE_KEYS.SANTRI, JSON.stringify(state.santri));
+  // Encrypt NIKs when saving to localstorage to secure sensitive data
+  const santriToSave = state.santri.map(s => {
+    return { ...s, nik: encodeNIK(s.nik) };
+  });
+  
+  localStorage.setItem(STORAGE_KEYS.SANTRI, JSON.stringify(santriToSave));
   localStorage.setItem(STORAGE_KEYS.OBAT, JSON.stringify(state.obat));
   localStorage.setItem(STORAGE_KEYS.REKAM_MEDIS, JSON.stringify(state.rekamMedis));
 }
@@ -160,6 +341,12 @@ function setupEventListeners() {
   document.getElementById('form-santri').addEventListener('submit', handleSantriSubmit);
   document.getElementById('form-obat').addEventListener('submit', handleObatSubmit);
   document.getElementById('form-rekam-medis').addEventListener('submit', handleRMSubmit);
+
+  // Cek NIK Auto-fill Button
+  const btnCekNik = document.getElementById('btn-cek-nik');
+  if (btnCekNik) {
+    btnCekNik.addEventListener('click', handleCekNik);
+  }
 
   // Searches and Filters
   document.getElementById('search-santri').addEventListener('input', renderSantriList);
@@ -328,13 +515,26 @@ function renderSantriList() {
     const avatarType = s.gender === 'Laki-laki' ? 'L' : 'P';
     const age = calculateAge(s.birthDate);
 
+    // Mask NIK by default: 320102******0001
+    const rawNik = s.nik || '-';
+    let maskedNik = rawNik;
+    if (rawNik.length === 16) {
+      maskedNik = rawNik.substring(0, 6) + '******' + rawNik.substring(12);
+    }
+
     tr.innerHTML = `
       <td>
         <div class="user-cell">
           <div class="user-avatar ${avatarType}">${initial}</div>
           <div class="user-info">
             <span class="user-name">${s.name}</span>
-            <span class="user-sub">ID: ${s.id}</span>
+            <span class="user-sub" style="display:flex; align-items:center; gap:0.25rem; flex-wrap:wrap;">
+              ID: ${s.id} | NIK: 
+              <span class="nik-value" data-raw="${rawNik}" data-masked="${maskedNik}">${maskedNik}</span>
+              <button class="btn-toggle-nik-visibility" onclick="toggleNikVisibility(this)" title="Tampilkan/Sembunyikan NIK" style="background:none; border:none; padding:0; display:inline-flex; align-items:center; color:var(--text-secondary); cursor:pointer;">
+                <i class="fas fa-eye-slash" style="font-size:0.75rem;"></i>
+              </button>
+            </span>
           </div>
         </div>
       </td>
@@ -366,6 +566,19 @@ function openAddSantriModal() {
   document.getElementById('santri-action-type').value = 'add';
   document.getElementById('santri-id-edit').value = '';
   
+  // Reset NIK feedback
+  const feedback = document.getElementById('nik-check-feedback');
+  if (feedback) {
+    feedback.style.display = 'none';
+    feedback.innerText = '';
+  }
+  
+  // Make NIK input editable
+  const nikInput = document.getElementById('santri-nik');
+  if (nikInput) {
+    nikInput.disabled = false;
+  }
+  
   openModal('modal-santri');
 }
 
@@ -377,6 +590,8 @@ function openEditSantriModal(id) {
   document.getElementById('santri-action-type').value = 'edit';
   document.getElementById('santri-id-edit').value = id;
 
+  // Populate fields
+  document.getElementById('santri-nik').value = santri.nik || '';
   document.getElementById('santri-name').value = santri.name;
   document.getElementById('santri-gender').value = santri.gender;
   document.getElementById('santri-dorm').value = santri.dorm;
@@ -387,6 +602,19 @@ function openEditSantriModal(id) {
   document.getElementById('santri-blood').value = santri.bloodType;
   document.getElementById('santri-allergies').value = santri.allergies;
 
+  // Reset NIK feedback
+  const feedback = document.getElementById('nik-check-feedback');
+  if (feedback) {
+    feedback.style.display = 'none';
+    feedback.innerText = '';
+  }
+
+  // Keep NIK input editable
+  const nikInput = document.getElementById('santri-nik');
+  if (nikInput) {
+    nikInput.disabled = false;
+  }
+
   openModal('modal-santri');
 }
 
@@ -395,8 +623,25 @@ function handleSantriSubmit(e) {
   
   const action = document.getElementById('santri-action-type').value;
   const idEdit = document.getElementById('santri-id-edit').value;
+  const nik = document.getElementById('santri-nik').value.trim();
+
+  // Validate NIK
+  if (nik.length !== 16 || isNaN(nik)) {
+    alert('NIK harus berupa 16 digit angka!');
+    document.getElementById('santri-nik').focus();
+    return;
+  }
+
+  // Check duplicate NIK (excluding current student being edited)
+  const duplicate = state.santri.find(s => s.nik === nik && s.id !== idEdit);
+  if (duplicate) {
+    alert(`Gagal: NIK ini sudah terdaftar atas nama "${duplicate.name}" (ID: ${duplicate.id})!`);
+    document.getElementById('santri-nik').focus();
+    return;
+  }
 
   const santriData = {
+    nik: nik,
     name: document.getElementById('santri-name').value,
     gender: document.getElementById('santri-gender').value,
     dorm: document.getElementById('santri-dorm').value,
@@ -439,6 +684,66 @@ function deleteSantri(id) {
     saveAllToStorage();
     renderSantriList();
     showNotification('Terhapus', 'Data santri berhasil dihapus dari sistem.');
+  }
+}
+
+// Handler Cek NIK untuk Auto-fill
+function handleCekNik() {
+  const nikInput = document.getElementById('santri-nik');
+  const feedback = document.getElementById('nik-check-feedback');
+  
+  if (!nikInput || !feedback) return;
+  
+  const nik = nikInput.value.trim();
+  
+  // 1. Validation
+  if (nik.length === 0) {
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--danger)';
+    feedback.innerText = 'Silakan masukkan NIK terlebih dahulu!';
+    return;
+  }
+  
+  if (nik.length !== 16 || isNaN(nik)) {
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--danger)';
+    feedback.innerText = 'NIK harus berupa 16 digit angka!';
+    return;
+  }
+  
+  // 2. Check duplicate in local state
+  const idEdit = document.getElementById('santri-id-edit').value;
+  const duplicate = state.santri.find(s => s.nik === nik && s.id !== idEdit);
+  if (duplicate) {
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--danger)';
+    feedback.innerText = `Gagal: NIK ini sudah terdaftar atas nama ${duplicate.name} (ID: ${duplicate.id})`;
+    return;
+  }
+  
+  // 3. Search in Mock NIK database
+  if (window.MOCK_NIK_DATABASE && window.MOCK_NIK_DATABASE[nik]) {
+    const data = window.MOCK_NIK_DATABASE[nik];
+    
+    // Auto-fill form fields
+    document.getElementById('santri-name').value = data.name;
+    document.getElementById('santri-gender').value = data.gender;
+    document.getElementById('santri-dorm').value = data.dorm;
+    document.getElementById('santri-room').value = data.room;
+    document.getElementById('santri-birthdate').value = data.birthDate;
+    document.getElementById('santri-parent').value = data.parentName;
+    document.getElementById('santri-phone').value = data.parentPhone;
+    document.getElementById('santri-blood').value = data.bloodType;
+    document.getElementById('santri-allergies').value = data.allergies;
+    
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--success)';
+    feedback.innerText = `Sukses: Data ditemukan untuk "${data.name}"! Form telah diisi otomatis.`;
+    showNotification('NIK Ditemukan', `Data ${data.name} berhasil di-load otomatis.`);
+  } else {
+    feedback.style.display = 'block';
+    feedback.style.color = 'var(--warning)';
+    feedback.innerText = 'NIK tidak terdaftar di database sampel. Silakan isi data secara manual.';
   }
 }
 
@@ -1119,3 +1424,23 @@ function closeAllModals() {
     modal.classList.remove('active');
   });
 }
+
+// Global Toggle for NIK UI Visibility Masking
+window.toggleNikVisibility = function(button) {
+  const container = button.parentNode;
+  const valSpan = container.querySelector('.nik-value');
+  const icon = button.querySelector('i');
+  
+  if (valSpan && icon) {
+    const isMasked = valSpan.innerText.includes('*');
+    if (isMasked) {
+      valSpan.innerText = valSpan.getAttribute('data-raw');
+      icon.className = 'fas fa-eye';
+      icon.style.color = 'var(--primary)';
+    } else {
+      valSpan.innerText = valSpan.getAttribute('data-masked');
+      icon.className = 'fas fa-eye-slash';
+      icon.style.color = 'var(--text-secondary)';
+    }
+  }
+};
